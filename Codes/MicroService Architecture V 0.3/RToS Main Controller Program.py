@@ -11,6 +11,8 @@ from import_library import *
 
 def user_story_processing(user_story):
     
+    #existing_comparison_technique = ['cosine', 'euclidean' , 'manhattan' , 'cityblock']
+    existing_comparison_technique = ['cosine']
     # NLP Pre-Processing 
     tokenize_words = nlp_pre_process.tokenize(user_story)
     punctuation_removed = nlp_pre_process.remove_punctuation(tokenize_words)
@@ -19,9 +21,17 @@ def user_story_processing(user_story):
     # Insights from Database
     server_connection = database_processing.mysql_connection('root','Ashish@123456789','localhost')
     databases_present = database_processing.database_information(server_connection)
+    number_of_values = 1
     
-    # Finding the Database to be referred
-    database_finalised = comparison_values.processing_array_generation(stop_words_removed,databases_present)
+    database_finalisation_list = []
+    
+    for comparison_technique in existing_comparison_technique:
+        # Finding the Database to be referred
+        extracted_database_finalised = comparison_values.similar_values(stop_words_removed, databases_present, number_of_values, comparison_technique)
+        database_finalisation_list.append(extracted_database_finalised)
+    
+    database_finalised = comparison_values.processing_array_generated(database_finalisation_list, number_of_values)  
+    
     while(True):
         user_decision = input("Database Predicted by System is " + database_finalised.upper() + ". Is the prediction Correct?(Yes/No)")    
         if user_decision == "Yes":
@@ -39,28 +49,44 @@ def user_story_processing(user_story):
 
     fields, field_comments = database_processing.database_metadata_information(server_connection,database_finalised)
     
-    idx = 0
+    updated_fields = []
     
     for field in fields:
         field = re.sub('[^0-9a-zA-Z]+', ' ', field)
-        fields[idx] = field
-        idx = idx + 1
+        updated_fields.append(field)
         
     # Advance NLP Processing
     pos_tagged_words = nlp_pre_process.part_of_speech_tagging(stop_words_removed)  
     
     important_words = nlp_pre_process.important_words_extraction(pos_tagged_words)
     
-    features_to_extracted = important_words.size
+    number_of_values = important_words.size
     
     synonyms_values = nlp_pre_process.synonyms_words(important_words)
     
-    if len(field_comments):
-        relevant_columns_based_on_comments = comparison_values.processing_array_generation(field_comments,synonyms_values)
+    relevant_columns_based_on_comments = []
+    relevant_columns_based_on_fields = []
     
-    if len(fields):
-        relevant_columns_based_on_fields = comparison_values.processing_array_generation(fields,synonyms_values)
+    column_predicted_list = []
+    
+    if len(updated_fields):
+        for comparison_technique_present in existing_comparison_technique:
+            relevant_columns_based_on_fields = comparison_values.similar_values(updated_fields, synonyms_values, number_of_values, comparison_technique_present)
+            column_predicted_list.extend(relevant_columns_based_on_fields)
    
+    if len(field_comments):
+        for comparison_technique in existing_comparison_technique:
+            relevant_columns_based_on_comments = comparison_values.similar_values(field_comments, synonyms_values, number_of_values, comparison_technique)
+            relevant_fields_based_on_comments = []
+            
+            for comments in relevant_columns_based_on_comments:
+                relevant_fields_based_on_comments.append(updated_fields[field_comments.index(comments)])
+            
+            column_predicted_list.extend(relevant_fields_based_on_comments)
+            
+    column_finalised = comparison_values.processing_array_generated(column_predicted_list, number_of_values)
+    
+    print(column_finalised)
     
 if __name__ == "__main__":
     user_story = input('Enter a User Story: ')

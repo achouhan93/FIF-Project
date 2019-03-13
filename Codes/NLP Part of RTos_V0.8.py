@@ -214,6 +214,24 @@ print(df_comment[index33])
 print(df_comment[index43])
 print(df_comment[index53])
 
+# ******************************************** #
+print("********* Distances - 6 (Manhattan)**********")
+
+from sklearn.metrics.pairwise import pairwise_distances
+values6 = pairwise_distances(tfidf[-1],tfidf,metric='manhattan')
+index16 = values6.argsort()[0][1]
+index26 = values6.argsort()[0][2]
+index36 = values6.argsort()[0][3]
+index46 = values6.argsort()[0][4]
+index56 = values6.argsort()[0][5]
+
+print(example_text1)
+print(df_comment[index16])
+print(df_comment[index26])
+print(df_comment[index36])
+print(df_comment[index46])
+print(df_comment[index56])
+
 # ******************************************* #
 
 print("********* Distances - 4 (l1) **********")
@@ -251,23 +269,7 @@ print(df_comment[index35])
 print(df_comment[index45])
 print(df_comment[index55])
 
-# ******************************************** #
-print("********* Distances - 6 (Manhattan)**********")
 
-from sklearn.metrics.pairwise import pairwise_distances
-values6 = pairwise_distances(tfidf[-1],tfidf,metric='manhattan')
-index16 = values6.argsort()[0][1]
-index26 = values6.argsort()[0][2]
-index36 = values6.argsort()[0][3]
-index46 = values6.argsort()[0][4]
-index56 = values6.argsort()[0][5]
-
-print(example_text1)
-print(df_comment[index16])
-print(df_comment[index26])
-print(df_comment[index36])
-print(df_comment[index46])
-print(df_comment[index56])
 
 # Importing Gensim
 import gensim
