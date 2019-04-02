@@ -9,12 +9,14 @@ from Database_Processing import database_processing
 
 def feature_selection_processing(database_fields, database_tables, database_list, database_connection):
     
+    lda_result = ' '
+    
+    relevant_columns_data = pd.DataFrame()
+    
     for field in database_fields:
         indices = database_fields.index(field)
         databases = database_list[indices]
         tables = database_tables[indices]
-        
-        relevant_columns_data = pd.DataFrame()
         
         for database in databases:
             for table in tables:
@@ -24,20 +26,23 @@ def feature_selection_processing(database_fields, database_tables, database_list
                 if (error_code == "404"):
                     continue
                 
-                actual_table_data = table_data.copy()
-                
                 # Encoding Categorical Data
                 for column_name in table_data.columns:
                     if table_data[column_name].dtype == object:
                         labelencoder = LabelEncoder()
-                        table_data[column_name] = labelencoder.fit_transform(table_data[column_name])
+                        table_data[column_name] = labelencoder.fit_transform(table_data[column_name].astype(str))
                     else:
                         pass
                 
+                table_data = table_data.select_dtypes(include=np.number)
                 table_data.fillna(table_data.mean(), inplace=True)
                 
-                df_Y = table_data.loc[:, field].to_frame(name = field)
-                df_X = table_data.drop(field, axis = 1)
+                try:
+                    df_Y = table_data.loc[:, field].to_frame(name = field)
+                    df_X = table_data.drop(field, axis = 1)
+                except:
+                    continue
+                
                 df_X = filter_method_data_preprocessing(df_X)
                 
                 # Scaling the Features on same scale
@@ -52,8 +57,8 @@ def feature_selection_processing(database_fields, database_tables, database_list
     
                 features, features_data = filter_method_execution(df_X, df_Y, number_of_features_relevant)
                 
-                for value in range(len(features_data)):
-                    features_data.columns.values[value] = features[value] + '_' + table + '_' + database
+                for value in range(len(features_data.columns)):
+                    features_data.columns.values[value] = features[value] + '___' + table + '___' + database
                     
                 relevant_columns_data.reset_index(drop=True, inplace=True)
                 features_data.reset_index(drop=True, inplace=True)
@@ -62,20 +67,53 @@ def feature_selection_processing(database_fields, database_tables, database_list
     relevant_columns_data_T = relevant_columns_data.T
     relevant_columns_data = relevant_columns_data_T.drop_duplicates(keep='first').T
     
+    """
     if (lda_result == " "):
-        correlated_features = set()  
-        correlation_matrix = relevant_columns_data.corr()
-
-        # Extract Co-Related Columns
-        for i in range(len(correlation_matrix.columns)):  
-            for j in range(i):
-                if abs(correlation_matrix.iloc[i, j]) > 0.8:
-                    colname = correlation_matrix.columns[i]
-                    correlated_features.add(colname)
+        if len(relevant_columns_data.columns) > len(database_fields):
+            correlated_features = set()  
+            correlation_matrix = relevant_columns_data.corr()
+            
+            # Extract Co-Related Columns
+            for i in range(len(correlation_matrix.columns)):  
+                for j in range(i):
+                    if abs(correlation_matrix.iloc[i, j]) > 0.8:
+                        colname = correlation_matrix.columns[i]
+                        correlated_features.add(colname)
+            
+        else:
+            return relevant_columns_data
     else:
         relevant_features = filter_advance_method(df_X, df_Y, number_of_features_relevant)
+    """
     
+    final_fields = []
+    final_table = []
+    final_database = []
+    
+    if (lda_result == " "):
+        
+        for i in range(len(relevant_columns_data.columns)):
+            field_value, table_value, database_value = relevant_columns_data.columns[i].split("___")
+            final_fields.append(field_value)
+            final_table.append(table_value)
+            final_database.append(database_value)
+        
+        return (final_fields, final_table, final_database)
+    
+    else:
+        advanced_columns_data = filter_advance_method(relevant_columns_data, lda_result, len(database_fields))
+        
+        for i in range(len(advanced_columns_data)):
+            field_value, table_value, database_value = advanced_columns_data.split("___")
+            final_fields.append(field_value)
+            final_table.append(table_value)
+            final_database.append(database_value)
+        
+        return (final_fields, final_table, final_database)
+        
+
 def filter_method_data_preprocessing(X_dataframe):
+    
     # Constant Columns Removal
     constant_filter = VarianceThreshold(threshold=0)
     constant_filter.fit(X_dataframe)       
@@ -113,30 +151,15 @@ def filter_method_execution(X_features, Y_target, no_of_features):
     correlation_information = correlation_matrix[Y_target.columns[0]].sort_values(ascending=False).head(no_of_features)
     
     for i in range(len(correlation_information)):
-        if correlation_information[i] > 0.8:
+        if abs(correlation_information[i]) > 0.8:
             correlated_features.append(correlation_information.index[i])
     
     correlated_features_dataframe = complete_data.loc[:, correlated_features]
     
     return (correlated_features, correlated_features_dataframe)
     
-def filter_advance_method(X_features, Y_response, no_of_features):
-    # -----------------------------------------------------------------------------------#
-    # Chi-Squared statistical test for non-negative features (Categorical Data)
-    # Data here used is All Numerical and Categorical
-    
-    # Feature extraction
-    chi_feature_extraction = SelectKBest(score_func=chi2, k=4)
-    fit = chi_feature_extraction.fit(X_features, Y_response)
-
-    # Summarize scores
-    np.set_printoptions(precision=3)
-    features = fit.transform(X_features)
-    
-    # Summarize selected features
-    print(features[0:5,:])
-
-    # ----------------------------------------------------------------------------------- #
+def filter_advance_method(complete_dataset, lda_model_prediction, no_of_features):
+    """# ----------------------------------------------------------------------------------- #
 
     # Recursive Feature Elimination (or RFE) works by recursively removing attributes and building a model on those attributes that remain
     # model accuracy to identify which attributes (and combination of attributes) contribute the most to predicting the target attribute
@@ -146,7 +169,8 @@ def filter_advance_method(X_features, Y_response, no_of_features):
     rfe = RFE(model, 3)
     fit = rfe.fit(X, Y)
     print("Num Features: %s" % (fit.n_features_))
-    print("Selected Features: %s" % (fit.support_))
+    print("Selected Features: %s" % (fit.support_))"""
+    
     print("Feature Ranking: %s" % (fit.ranking_))
 
 

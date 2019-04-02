@@ -139,9 +139,11 @@ def user_story_processing(user_story):
     print('**** After NLP Processing ****')
     result_display(field_finalised, finalised_table, finalised_database)
     
-    most_relevant_features = feature_selection_processing(field_finalised, finalised_table, finalised_database, server_connection)
+    print('**** After Feature Selection ***')
+    field_finalised, finalised_table, finalised_database = feature_selection_processing(field_finalised, finalised_table, finalised_database, server_connection)
+    result_display(field_finalised, finalised_table, finalised_database)
     
-
+    
 def result_display(finalised_field, tables, database):
     table = PrettyTable(['Preferences','Field Name', 'Tables', 'Database'])
     index = 1
