@@ -7,7 +7,6 @@ Description:
     (Micro Service Architecture)
 """
 # Import Libraries required for Processing
-
 import sys
 import pandas as pd
 import numpy as np
@@ -15,15 +14,13 @@ import nltk
 import re
 from collections import Counter
 
+# NLP Processing Library
 # Tokenization
 from nltk.tokenize import word_tokenize, sent_tokenize
-
 # Stop Words    
 from nltk.corpus import stopwords
-
 # Word Net
 from nltk.corpus import wordnet
-
 # Importing Gensim
 from gensim import corpora
 
@@ -36,5 +33,13 @@ import MySQLdb
 
 # Table Display Library
 from prettytable import PrettyTable
+
+# Filter Methods Library
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import LabelEncoder, StandardScaler, Imputer
+
+
+
 
 

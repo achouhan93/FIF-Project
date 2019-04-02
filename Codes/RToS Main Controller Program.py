@@ -4,10 +4,11 @@ Created on Thu Feb 14 18:24:02 2019
 
 @author: ashis
 """
+from import_library import *
 from NLP_PreProcessing import nlp_pre_process
 from Database_Processing import database_processing
 from Comparison_Processing import comparison_values
-from import_library import *
+from feature_selection import feature_selection_processing
 
 def user_story_processing(user_story):
     
@@ -33,7 +34,7 @@ def user_story_processing(user_story):
     database_finalised = comparison_values.processing_array_generated(database_finalisation_list, number_of_values)  
     
     while(True):
-        user_decision = input("Database Predicted by System is " + database_finalised.upper() + ". Is the prediction Correct?(Yes/No)")    
+        user_decision = input("Database Predicted by System is " + database_finalised.upper() + ".\nIs the prediction Correct?\nYes - If Prediction is Correct\nNo - If Prediction is Wrong\nNA - Not Aware of Database\nq - To go Back : ")    
         if user_decision == "Yes":
             break
         elif user_decision == "No":
@@ -44,10 +45,12 @@ def user_story_processing(user_story):
                 count = count + 1
             database_finalised = input("Enter the Correct Database Name: ").lower()
             break
-        elif user_decision == " ":
+        elif user_decision == "NA":
             print("All Databases present in the Database Connection will be Considered")
             database_finalised = " "
             break
+        elif user_decision == "q":
+            return
         else:
             print("Kindly insert input in Yes or No")    
     
@@ -135,9 +138,9 @@ def user_story_processing(user_story):
         
     print('**** After NLP Processing ****')
     result_display(field_finalised, finalised_table, finalised_database)
-    #most_relevant_features = feature_selection_script.feature_selection_processing(field_finalised, server_connection)
     
-    #print(most_relevant_features)
+    most_relevant_features = feature_selection_processing(field_finalised, finalised_table, finalised_database, server_connection)
+    
 
 def result_display(finalised_field, tables, database):
     table = PrettyTable(['Preferences','Field Name', 'Tables', 'Database'])
@@ -149,5 +152,13 @@ def result_display(finalised_field, tables, database):
     print(table)
     
 if __name__ == "__main__":
-    user_story = input('Enter a User Story: ')
-    user_story_processing(user_story)
+    while(True):
+        user_story = input('Enter a User Story or Press "q" to exit the application: ')
+        if user_story == "":
+            print("Kindly insert a User Story")
+            continue
+        elif user_story == "q":
+            break
+        else:
+            user_story_processing(user_story)
+        
