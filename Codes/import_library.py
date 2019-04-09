@@ -21,8 +21,6 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords
 # Word Net
 from nltk.corpus import wordnet
-# Importing Gensim
-from gensim import corpora
 
 # Evaluation Library Import
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -35,11 +33,18 @@ import MySQLdb
 from prettytable import PrettyTable
 
 # Filter Methods Library
-from sklearn.feature_selection import VarianceThreshold
-from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import LabelEncoder, StandardScaler, Imputer
+from sklearn.feature_selection import VarianceThreshold, RFE
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 
+from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.svm import SVC
+from sklearn.naive_bayes import BernoulliNB, MultinomialNB
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 
+from mlxtend.feature_selection import SequentialFeatureSelector
 
+import warnings
 
-
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, r2_score

@@ -9,8 +9,6 @@ from Database_Processing import database_processing
 
 def feature_selection_processing(database_fields, database_tables, database_list, database_connection):
     
-    lda_result = ' '
-    
     relevant_columns_data = pd.DataFrame()
     
     for field in database_fields:
@@ -55,7 +53,7 @@ def feature_selection_processing(database_fields, database_tables, database_list
                 
                 number_of_features_relevant = round(len(df_X_scaled.columns)/2)
     
-                features, features_data = filter_method_execution(df_X, df_Y, number_of_features_relevant)
+                features, features_data = filter_method_execution(df_X_scaled, df_Y_scaled, number_of_features_relevant)
                 
                 for value in range(len(features_data.columns)):
                     features_data.columns.values[value] = features[value] + '___' + table + '___' + database
@@ -64,52 +62,21 @@ def feature_selection_processing(database_fields, database_tables, database_list
                 features_data.reset_index(drop=True, inplace=True)
                 relevant_columns_data = pd.concat([relevant_columns_data, features_data], axis = 1)
     
+    relevant_columns_data.fillna(0, inplace=True)
     relevant_columns_data_T = relevant_columns_data.T
     relevant_columns_data = relevant_columns_data_T.drop_duplicates(keep='first').T
-    
-    """
-    if (lda_result == " "):
-        if len(relevant_columns_data.columns) > len(database_fields):
-            correlated_features = set()  
-            correlation_matrix = relevant_columns_data.corr()
-            
-            # Extract Co-Related Columns
-            for i in range(len(correlation_matrix.columns)):  
-                for j in range(i):
-                    if abs(correlation_matrix.iloc[i, j]) > 0.8:
-                        colname = correlation_matrix.columns[i]
-                        correlated_features.add(colname)
-            
-        else:
-            return relevant_columns_data
-    else:
-        relevant_features = filter_advance_method(df_X, df_Y, number_of_features_relevant)
-    """
     
     final_fields = []
     final_table = []
     final_database = []
-    
-    if (lda_result == " "):
         
-        for i in range(len(relevant_columns_data.columns)):
-            field_value, table_value, database_value = relevant_columns_data.columns[i].split("___")
-            final_fields.append(field_value)
-            final_table.append(table_value)
-            final_database.append(database_value)
+    for i in range(len(relevant_columns_data.columns)):
+        field_value, table_value, database_value = relevant_columns_data.columns[i].split("___")
+        final_fields.append(field_value)
+        final_table.append(table_value)
+        final_database.append(database_value)
         
-        return (final_fields, final_table, final_database)
-    
-    else:
-        advanced_columns_data = filter_advance_method(relevant_columns_data, lda_result, len(database_fields))
-        
-        for i in range(len(advanced_columns_data)):
-            field_value, table_value, database_value = advanced_columns_data.split("___")
-            final_fields.append(field_value)
-            final_table.append(table_value)
-            final_database.append(database_value)
-        
-        return (final_fields, final_table, final_database)
+    return (final_fields, final_table, final_database, relevant_columns_data)
         
 
 def filter_method_data_preprocessing(X_dataframe):
@@ -158,21 +125,90 @@ def filter_method_execution(X_features, Y_target, no_of_features):
     
     return (correlated_features, correlated_features_dataframe)
     
-def filter_advance_method(complete_dataset, lda_model_prediction, no_of_features):
-    """# ----------------------------------------------------------------------------------- #
-
-    # Recursive Feature Elimination (or RFE) works by recursively removing attributes and building a model on those attributes that remain
-    # model accuracy to identify which attributes (and combination of attributes) contribute the most to predicting the target attribute
-
-    # Feature extraction
-    model = LogisticRegression()
-    rfe = RFE(model, 3)
-    fit = rfe.fit(X, Y)
-    print("Num Features: %s" % (fit.n_features_))
-    print("Selected Features: %s" % (fit.support_))"""
+def algorithm_selection_processing(relevant_columns, lda_output):
     
-    print("Feature Ranking: %s" % (fit.ranking_))
+    algorithm_details = []
+    
+    for i in range(len(relevant_columns.columns)):
+        column_data = relevant_columns.copy()
+        train_features, test_features, train_labels, test_labels = train_test_split(  
+                    column_data.drop(labels=[column_data.columns[i]], axis=1),
+                    column_data[column_data.columns[i]],
+                    test_size=0.2,
+                    random_state=41)
+        
+        if lda_output == "Regression":
+            if lda_output[1] == "LinearRegression" or lda_output != " ":
+                accuracy_percent, target_columns, features_columns  = linear_regression_processing(train_features, test_features, train_labels, test_labels)
+                details = ("Regression : Linear Regression", accuracy_percent, target_columns, features_columns)
+                algorithm_details.append(details)
+        elif lda_output[0] == "Classification":
+            if lda_output[1] == "SVM":
+                accuracy_percent = SVM_processing(train_features, test_features, train_labels, test_labels)
+                algorithm_details.append("Classification : SVM", accuracy_percent, Y.columns, X.columns)
+            elif lda_output[1] == "LogisticRegression":
+                accuracy_percent = logistic_regression_processing(train_features, test_features, train_labels, test_labels)
+                algorithm_details.append("Classification : Logistic Regression", accuracy_percent, Y.columns, X.columns)
+            elif lda_output[1] == "NaiveBayes":
+                accuracy_percent = naive_bayes_processing(train_features, test_features, train_labels, test_labels)
+                algorithm_details.append("Classification : Naive Bayes", accuracy_percent, Y.columns, X.columns)
+            elif lda_output[1] == "DecisionTree":
+                accuracy_percent = decision_tree_processing(train_features, test_features, train_labels, test_labels)
+                algorithm_details.append("Classification : Decision Tree", accuracy_percent, Y.columns, X.columns)
+            elif lda_output[1] == "RandomForest":
+                accuracy_percent = random_forest_processing(train_features, test_features, train_labels, test_labels)
+                algorithm_details.append("Classification : Random Forest", accuracy_percent, Y.columns, X.columns)
+            elif lda_output[1] == " ":
+                accuracy_percent = SVM_processing(train_features, test_features, train_labels, test_labels)
+                algorithm_details.append("Classification : SVM", accuracy_percent, Y.columns, X.columns)
+                
+                accuracy_percent = logistic_regression_processing(train_features, test_features, train_labels, test_labels)
+                algorithm_details.append("Classification : Logistic Regression", accuracy_percent, Y.columns, X.columns)
+            
+                accuracy_percent = naive_bayes_processing(train_features, test_features, train_labels, test_labels)
+                algorithm_details.append("Classification : Naive Bayes", accuracy_percent, Y.columns, X.columns)
+                
+                accuracy_percent = decision_tree_processing(train_features, test_features, train_labels, test_labels)
+                algorithm_details.append("Classification : Decision Tree", accuracy_percent, Y.columns, X.columns)
+            
+                accuracy_percent = random_forest_processing(train_features, test_features, train_labels, test_labels)
+                algorithm_details.append("Classification : Random Forest", accuracy_percent, Y.columns, X.columns)
+                
+    algorithm_details = sorted(algorithm_details, key = lambda x: x[1], reverse = True)     
 
+    algorithms = []
+    accuracy_score = []
+    target_values = []
+    independent_values = []
+    
+    for i in range(len(algorithm_details)):
+        algorithms.append(algorithm_details[i][0])
+        accuracy_score.append(algorithm_details[i][1])
+        target_values.append(algorithm_details[i][2])
+        independent_values.append(algorithm_details[i][3])
+        
+    return (algorithms, accuracy_score, target_values, independent_values)
+    
+def linear_regression_processing(X_train, X_test, Y_train, Y_test):
+    
+    model = LinearRegression()
+    rfe = RFE(model, round(len(X_train.columns)/2))
+    features = rfe.fit(X_train.values, Y_train.values)
+    value_index = []
+    for i in range(len(features.ranking_)):
+        if (features.ranking_[i] == 1):
+            value_index.append(i)
+            
+    filtered_features = X_train.columns[list(value_index)]
+    
+    testing_model = LinearRegression()
+    testing_model.fit(X_train[filtered_features], Y_train)
+    Y_pred = testing_model.predict(X_test[filtered_features])
+    
+    model_accuracy = r2_score(Y_test.values, Y_pred)
+    
+    return (model_accuracy, pd.DataFrame(Y_train).columns[0], filtered_features.tolist())
+    
 
         
         

@@ -8,17 +8,20 @@ from import_library import *
 from NLP_PreProcessing import nlp_pre_process
 from Database_Processing import database_processing
 from Comparison_Processing import comparison_values
-from feature_selection import feature_selection_processing
+from feature_selection import feature_selection_processing, algorithm_selection_processing
+
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 def user_story_processing(user_story):
     
-    existing_comparison_technique = ['cosine', 'euclidean' , 'manhattan' , 'cityblock']
+    existing_comparison_technique = ['cosine', 'euclidean' , 'manhattan']
 
     # NLP Pre-Processing 
     tokenize_words = nlp_pre_process.tokenize(user_story)
     punctuation_removed = nlp_pre_process.remove_punctuation(tokenize_words)
     stop_words_removed = nlp_pre_process.remove_stop_words(punctuation_removed)
     
+    lda_output = "Regression"
     # Insights from Database
     server_connection = database_processing.mysql_connection('root','Ashish@123456789','localhost')
     databases_present = database_processing.database_information(server_connection)
@@ -139,10 +142,21 @@ def user_story_processing(user_story):
     print('**** After NLP Processing ****')
     result_display(field_finalised, finalised_table, finalised_database)
     
-    print('**** After Feature Selection ***')
-    field_finalised, finalised_table, finalised_database = feature_selection_processing(field_finalised, finalised_table, finalised_database, server_connection)
+    print('**** After Feature Selection ****')
+    field_finalised, finalised_table, finalised_database, feature_list = feature_selection_processing(field_finalised, finalised_table, finalised_database, server_connection)
     result_display(field_finalised, finalised_table, finalised_database)
     
+    if lda_output != " ":
+        print('**** Probable Algorithms ****')
+        algorithm_used, accuracy_score, target_feature, independent_features = algorithm_selection_processing(feature_list, lda_output)
+        
+        table = PrettyTable(['Preferences' , 'Algorithm Prefered','Accuracy Percentage', 'Target Feature (Field Name__Table Name__Database Name)', 'Independent Features'])
+        index = 1
+        for i in range(len(algorithm_used)):
+            table.add_row([index, algorithm_used[index-1], accuracy_score[index-1], target_feature[index-1], independent_features[index-1]])
+            index = index + 1
+        
+        print(table)
     
 def result_display(finalised_field, tables, database):
     table = PrettyTable(['Preferences','Field Name', 'Tables', 'Database'])
