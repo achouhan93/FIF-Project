@@ -36,15 +36,14 @@ from prettytable import PrettyTable
 from sklearn.feature_selection import VarianceThreshold, RFE
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
-from sklearn.linear_model import LogisticRegression, LinearRegression
-from sklearn.svm import SVC
-from sklearn.naive_bayes import BernoulliNB, MultinomialNB
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LinearRegression
+from sklearn.svm import SVR
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor
 
 from mlxtend.feature_selection import SequentialFeatureSelector
 
 import warnings
 
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, r2_score
+from sklearn.metrics import r2_score

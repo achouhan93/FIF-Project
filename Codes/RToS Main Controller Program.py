@@ -21,7 +21,7 @@ def user_story_processing(user_story):
     punctuation_removed = nlp_pre_process.remove_punctuation(tokenize_words)
     stop_words_removed = nlp_pre_process.remove_stop_words(punctuation_removed)
     
-    lda_output = "Regression"
+    lda_output = ("Classification", " ")
     # Insights from Database
     server_connection = database_processing.mysql_connection('root','Ashish@123456789','localhost')
     databases_present = database_processing.database_information(server_connection)
@@ -146,7 +146,7 @@ def user_story_processing(user_story):
     field_finalised, finalised_table, finalised_database, feature_list = feature_selection_processing(field_finalised, finalised_table, finalised_database, server_connection)
     result_display(field_finalised, finalised_table, finalised_database)
     
-    if lda_output != " ":
+    if lda_output[0] != " ":
         print('**** Probable Algorithms ****')
         algorithm_used, accuracy_score, target_feature, independent_features = algorithm_selection_processing(feature_list, lda_output)
         
