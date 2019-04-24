@@ -1,4 +1,0 @@
-Use Case
-1) Walmart Store , arrange the products present in the store based on Weight of Item and Fat contain in the Product.
-2) For Walmart Store and products present in it , Find thr relationship between Visibility of Product Present and Others features of the Product like Type of Item and features of the Walmart Store.
-3) For Walmart Store, For a specific outlet cluster the Products present in the store based on Type of Item.
