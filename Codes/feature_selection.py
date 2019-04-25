@@ -40,8 +40,7 @@ def feature_selection_processing(database_fields, database_tables, database_list
                         pass
                 
                 table_data = table_data.select_dtypes(include=np.number)
-                #table_data.fillna(table_data.mean(), inplace=True)
-                table_data.fillna(0, inplace=True)
+                table_data.fillna(table_data.mean(), inplace=True)
                 
                 try:
                     df_Y = table_data.loc[:, field].to_frame(name = field)

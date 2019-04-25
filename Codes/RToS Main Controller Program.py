@@ -36,7 +36,6 @@ def user_story_processing(user_story):
 
     for comparison_technique in existing_comparison_technique:
         # Finding the Database to be referred
-        #extracted_database_finalised = comparison_values.similar_values(databases_present, stop_words_removed, number_of_values, comparison_technique)
         extracted_database_finalised = comparison_values.similar_values(databases_present, hypothesis_synonyms_values, number_of_values, comparison_technique)
         database_finalisation_list.append(extracted_database_finalised)
     

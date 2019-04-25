@@ -21,11 +21,9 @@ class comparison_values():
         comparison_string = np.array_str(array_list)
         
         comparison_string = re.sub('_', ' ', comparison_string)
-        #reference_array.append(comparison_string)
         updated_reference_array.append(comparison_string)
         
         TfidVec = TfidfVectorizer(stop_words='english')
-        #tfidf = TfidVec.fit_transform(reference_array)
         tfidf = TfidVec.fit_transform(updated_reference_array)
         
         distance_value = pairwise_distances(tfidf[-1], tfidf, metric = comparison_technique)
@@ -36,7 +34,6 @@ class comparison_values():
             index = distance_value.argsort()[0][i]
             matching_values.append(reference_array[index])
         
-        #reference_array.remove(comparison_string)
         updated_reference_array.remove(comparison_string)
         
         if number_of_values == 1:
