@@ -47,3 +47,7 @@ import warnings
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
+
+#LDA Implementation
+from gensim import models, corpora
+from nltk.stem import WordNetLemmatizer

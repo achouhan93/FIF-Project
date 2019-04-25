@@ -47,6 +47,7 @@ class nlp_pre_process():
                 final_word.append(d[i][j][0])
         
         return np.unique(final_word)
+     
     
     def synonyms_words(important_words):
         synonyms = []
@@ -54,7 +55,8 @@ class nlp_pre_process():
         for i in range(len(important_words)):
             for syn in wordnet.synsets(important_words[i]):
                 for l in syn.lemmas():
-                    synonyms.append(l.name())
+                    if len(l.name()) > 3:
+                        synonyms.append(l.name())
         
         return np.unique(synonyms)
 

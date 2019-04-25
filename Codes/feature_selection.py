@@ -6,9 +6,11 @@ Created on Thu Mar  7 00:25:52 2019
 """
 from import_library import *
 from Database_Processing import database_processing
+from Comparison_Processing import comparison_values
 
 def feature_selection_processing(database_fields, database_tables, database_list, database_connection):
     
+    logger = []
     relevant_columns_data = pd.DataFrame()
     
     for field in database_fields:
@@ -24,6 +26,11 @@ def feature_selection_processing(database_fields, database_tables, database_list
                 if (error_code == "404"):
                     continue
                 
+                if table_data.empty:
+                    log = table + " in " + database + " is empty."
+                    logger.append(log)
+                    continue
+                    
                 # Encoding Categorical Data
                 for column_name in table_data.columns:
                     if table_data[column_name].dtype == object:
@@ -33,7 +40,8 @@ def feature_selection_processing(database_fields, database_tables, database_list
                         pass
                 
                 table_data = table_data.select_dtypes(include=np.number)
-                table_data.fillna(table_data.mean(), inplace=True)
+                #table_data.fillna(table_data.mean(), inplace=True)
+                table_data.fillna(0, inplace=True)
                 
                 try:
                     df_Y = table_data.loc[:, field].to_frame(name = field)
@@ -41,7 +49,7 @@ def feature_selection_processing(database_fields, database_tables, database_list
                 except:
                     continue
                 
-                df_X = filter_method_data_preprocessing(df_X)
+                (df_X, logger) = filter_method_data_preprocessing(df_X, logger)
                 
                 # Scaling the Features on same scale
                 sc_x = StandardScaler()
@@ -62,24 +70,31 @@ def feature_selection_processing(database_fields, database_tables, database_list
                 features_data.reset_index(drop=True, inplace=True)
                 relevant_columns_data = pd.concat([relevant_columns_data, features_data], axis = 1)
     
-    relevant_columns_data.fillna(0, inplace=True)
-    relevant_columns_data_T = relevant_columns_data.T
-    relevant_columns_data = relevant_columns_data_T.drop_duplicates(keep='first').T
-    
     final_fields = []
     final_table = []
     final_database = []
-        
+    
+    logger = list(sorted(set(logger)))
+    
+    if relevant_columns_data.empty:
+        return (final_fields, final_table, final_database, relevant_columns_data, logger)
+            
+    relevant_columns_data.fillna(0, inplace=True)
+    relevant_columns_data_T = relevant_columns_data.T
+    relevant_columns_data = relevant_columns_data_T.drop_duplicates(keep='first').T
+ 
     for i in range(len(relevant_columns_data.columns)):
         field_value, table_value, database_value = relevant_columns_data.columns[i].split("___")
         final_fields.append(field_value)
         final_table.append(table_value)
         final_database.append(database_value)
         
-    return (final_fields, final_table, final_database, relevant_columns_data)
+    return (final_fields, final_table, final_database, relevant_columns_data, logger)
         
 
-def filter_method_data_preprocessing(X_dataframe):
+def filter_method_data_preprocessing(X_dataframe, logs):
+    
+    intial_X_dataframe = X_dataframe
     
     # Constant Columns Removal
     constant_filter = VarianceThreshold(threshold=0)
@@ -89,6 +104,10 @@ def filter_method_data_preprocessing(X_dataframe):
     constant_columns = [column for column in X_dataframe.columns  
                     if column not in X_dataframe.columns[constant_filter.get_support()]]
     X_dataframe.drop(labels=constant_columns, axis=1, inplace=True)
+    
+    if constant_columns:
+        log = (",".join(constant_columns)) + " : Constant Columns are removed"
+        logs.append(log)
         
     # Quasi-Constant Columns Removal
     qconstant_filter = VarianceThreshold(threshold=0.01)
@@ -97,12 +116,22 @@ def filter_method_data_preprocessing(X_dataframe):
     qconstant_columns = [column for column in X_dataframe.columns  
                     if column not in X_dataframe.columns[qconstant_filter.get_support()]]
     X_dataframe.drop(labels=qconstant_columns, axis=1, inplace=True)
-        
+    
+    if qconstant_columns:
+        log = (",".join(qconstant_columns)) + " : Quasi-Constant Columns are removed"
+        logs.append(log)    
+    
     #Duplicate Removal
     X_dataframe_T = X_dataframe.T
     X_dataframe = X_dataframe_T.drop_duplicates(keep='first').T
+    
+    duplicated_columns = [dup_col for dup_col in intial_X_dataframe.columns if dup_col not in X_dataframe.columns]
+    
+    if duplicated_columns:
+        log = (",".join(duplicated_columns)) + " : Duplicate Columns are removed"
+        logs.append(log)    
         
-    return X_dataframe
+    return (X_dataframe, logs)
     
 def filter_method_execution(X_features, Y_target, no_of_features):
     
@@ -112,16 +141,21 @@ def filter_method_execution(X_features, Y_target, no_of_features):
     X_features.reset_index(drop=True, inplace=True)
     Y_target.reset_index(drop=True, inplace=True)
     complete_data = pd.concat([X_features, Y_target], axis = 1)    
-    correlation_matrix = complete_data.corr()
     
-    # Extract Correlated features
-    correlation_information = correlation_matrix[Y_target.columns[0]].sort_values(ascending=False).head(no_of_features)
+    existing_correlation_technique = ['pearson', 'kendall' , 'spearman']
     
-    for i in range(len(correlation_information)):
-        if abs(correlation_information[i]) > 0.8:
-            correlated_features.append(correlation_information.index[i])
+    for correlation_technique in existing_correlation_technique:
+        correlation_matrix = complete_data.corr(method=correlation_technique)
     
-    correlated_features_dataframe = complete_data.loc[:, correlated_features]
+        # Extract Correlated features
+        correlation_information = correlation_matrix[Y_target.columns[0]].sort_values(ascending=False).head(no_of_features)
+    
+        for i in range(len(correlation_information)):
+            if abs(correlation_information[i]) > 0.8:
+                correlated_features.append(correlation_information.index[i])
+    
+    correlated_features_finalised = comparison_values.processing_array_generated(correlated_features, len(X_features.columns))      
+    correlated_features_dataframe = complete_data.loc[:, correlated_features_finalised]
     
     return (correlated_features, correlated_features_dataframe)
     

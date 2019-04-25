@@ -9,13 +9,24 @@ from import_library import *
 class comparison_values():
     
     def similar_values(reference_array,comparison_array, number_of_values, comparison_technique):
+        updated_reference_array = []
+        
+        for field in reference_array:
+            field = re.sub('[^0-9a-zA-Z]+', ' ', field)
+            updated_reference_array.append(field)
+    
+        updated_reference_array = pd.unique(updated_reference_array).tolist()
         
         array_list = np.asarray(comparison_array)
         comparison_string = np.array_str(array_list)
-        reference_array.append(comparison_string)
+        
+        comparison_string = re.sub('_', ' ', comparison_string)
+        #reference_array.append(comparison_string)
+        updated_reference_array.append(comparison_string)
         
         TfidVec = TfidfVectorizer(stop_words='english')
-        tfidf = TfidVec.fit_transform(reference_array)
+        #tfidf = TfidVec.fit_transform(reference_array)
+        tfidf = TfidVec.fit_transform(updated_reference_array)
         
         distance_value = pairwise_distances(tfidf[-1], tfidf, metric = comparison_technique)
         
@@ -25,7 +36,8 @@ class comparison_values():
             index = distance_value.argsort()[0][i]
             matching_values.append(reference_array[index])
         
-        reference_array.remove(comparison_string)
+        #reference_array.remove(comparison_string)
+        updated_reference_array.remove(comparison_string)
         
         if number_of_values == 1:
             return matching_values[0]

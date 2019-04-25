@@ -3,6 +3,8 @@
 Created on Thu Feb 14 18:24:02 2019
 
 @author: ashis
+
+If Date Column is present in the database then for User Story, date column cannot be retreived as features
 """
 from import_library import *
 from NLP_PreProcessing import nlp_pre_process
@@ -20,8 +22,11 @@ def user_story_processing(user_story):
     tokenize_words = nlp_pre_process.tokenize(user_story)
     punctuation_removed = nlp_pre_process.remove_punctuation(tokenize_words)
     stop_words_removed = nlp_pre_process.remove_stop_words(punctuation_removed)
+    hypothesis_synonyms_values = nlp_pre_process.synonyms_words(stop_words_removed)
     
-    lda_output = ("Classification", " ")
+    lda_output = (" ", " ")
+    #lda_output = topic_modelling.lda_topic_modelling(stop_words_removed)
+    
     # Insights from Database
     server_connection = database_processing.mysql_connection('root','Ashish@123456789','localhost')
     databases_present = database_processing.database_information(server_connection)
@@ -31,7 +36,8 @@ def user_story_processing(user_story):
 
     for comparison_technique in existing_comparison_technique:
         # Finding the Database to be referred
-        extracted_database_finalised = comparison_values.similar_values(databases_present, stop_words_removed, number_of_values, comparison_technique)
+        #extracted_database_finalised = comparison_values.similar_values(databases_present, stop_words_removed, number_of_values, comparison_technique)
+        extracted_database_finalised = comparison_values.similar_values(databases_present, hypothesis_synonyms_values, number_of_values, comparison_technique)
         database_finalisation_list.append(extracted_database_finalised)
     
     database_finalised = comparison_values.processing_array_generated(database_finalisation_list, number_of_values)  
@@ -77,22 +83,25 @@ def user_story_processing(user_story):
     else:
         database_metadata_information, database_value, table_information, fields, field_datatype, field_comments = database_processing.database_metadata_information(server_connection,database_finalised)
     
-    updated_fields = []
+    updated_fields_complete = []
     
     for field in fields:
         field = re.sub('[^0-9a-zA-Z]+', ' ', field)
-        updated_fields.append(field)
+        updated_fields_complete.append(field)
     
-    updated_fields = pd.unique(updated_fields).tolist()
+    updated_fields = pd.unique(updated_fields_complete).tolist()
     field_comments = pd.unique(field_comments).tolist()
         
     # Advance NLP Processing
     pos_tagged_words = nlp_pre_process.part_of_speech_tagging(stop_words_removed)  
-    important_words = nlp_pre_process.important_words_extraction(pos_tagged_words)
-    number_of_values = important_words.size
-    
+    important_words = nlp_pre_process.important_words_extraction(pos_tagged_words)        
     synonyms_values = nlp_pre_process.synonyms_words(important_words)
-    
+
+    if (len(updated_fields) <= important_words.size):
+        number_of_values = len(updated_fields)
+    else:
+        number_of_values = important_words.size
+        
     # Field Value Processing
     relevant_columns_based_on_comments = []
     relevant_columns_based_on_fields = []
@@ -104,7 +113,7 @@ def user_story_processing(user_story):
             relevant_columns_based_on_fields = comparison_values.similar_values(updated_fields, synonyms_values, number_of_values, comparison_technique_present)
             column_predicted_list.extend(relevant_columns_based_on_fields)
    
-    if len(field_comments):
+    if (len(field_comments) and len(updated_fields) == len(field_comments)):
         for comparison_technique in existing_comparison_technique:
             relevant_columns_based_on_comments = comparison_values.similar_values(field_comments, synonyms_values, number_of_values, comparison_technique)
             relevant_fields_based_on_comments = []
@@ -119,7 +128,7 @@ def user_story_processing(user_story):
     field_finalised = []
     
     for field_value in column_finalised:
-        field_finalised.append(fields[updated_fields.index(field_value)])
+        field_finalised.append(fields[updated_fields_complete.index(field_value)])
     
     finalised_database = []
     finalised_table = []
@@ -143,10 +152,14 @@ def user_story_processing(user_story):
     result_display(field_finalised, finalised_table, finalised_database)
     
     print('**** After Feature Selection ****')
-    field_finalised, finalised_table, finalised_database, feature_list = feature_selection_processing(field_finalised, finalised_table, finalised_database, server_connection)
+    field_finalised, finalised_table, finalised_database, feature_list, logs = feature_selection_processing(field_finalised, finalised_table, finalised_database, server_connection)
     result_display(field_finalised, finalised_table, finalised_database)
     
-    if lda_output[0] != " ":
+    print('**** Logs ****')
+    for x in range(len(logs)):
+        print(logs[x])
+    
+    if (lda_output[0] != " ") and (len(field_finalised) != 0):
         print('**** Probable Algorithms ****')
         algorithm_used, accuracy_score, target_feature, independent_features = algorithm_selection_processing(feature_list, lda_output)
         
