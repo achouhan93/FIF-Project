@@ -45,12 +45,11 @@ class comparison_values():
         most_count_values = Counter(combined_list)
         
         most_relevant_values =  most_count_values.most_common(number_of_values)
-        
+        column = []
         if number_of_values == 1:
-            return most_relevant_values[0][0]
+            column.append(most_relevant_values[0][0])
         else:
-            column = []
             for i in range(len(most_relevant_values)):
                 column.append(most_relevant_values[i][0])
-            
-            return column
+
+        return column

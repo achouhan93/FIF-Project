@@ -40,8 +40,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
-
-from mlxtend.feature_selection import SequentialFeatureSelector
+from sklearn.naive_bayes import BernoulliNB
 
 import warnings
 
@@ -51,3 +50,9 @@ from sklearn.metrics import r2_score
 #LDA Implementation
 from gensim import models, corpora
 from nltk.stem import WordNetLemmatizer
+
+# Testing Part
+from sklearn.ensemble import RandomForestClassifier  
+from sklearn.metrics import roc_auc_score
+from sklearn.svm import SVC
+from mlxtend.feature_selection import SequentialFeatureSelector

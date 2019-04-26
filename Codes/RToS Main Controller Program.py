@@ -24,7 +24,7 @@ def user_story_processing(user_story):
     stop_words_removed = nlp_pre_process.remove_stop_words(punctuation_removed)
     hypothesis_synonyms_values = nlp_pre_process.synonyms_words(stop_words_removed)
     
-    lda_output = (" ", " ")
+    lda_output = ("Regression", " ")
     #lda_output = topic_modelling.lda_topic_modelling(stop_words_removed)
     
     # Insights from Database
@@ -39,7 +39,8 @@ def user_story_processing(user_story):
         extracted_database_finalised = comparison_values.similar_values(databases_present, hypothesis_synonyms_values, number_of_values, comparison_technique)
         database_finalisation_list.append(extracted_database_finalised)
     
-    database_finalised = comparison_values.processing_array_generated(database_finalisation_list, number_of_values)  
+    database_finalised_value = comparison_values.processing_array_generated(database_finalisation_list, number_of_values)  
+    database_finalised = database_finalised_value[0]
     
     while(True):
         user_decision = input("Database Predicted by System is " + database_finalised.upper() + ".\nIs the prediction Correct?\nYes - If Prediction is Correct\nNo - If Prediction is Wrong\nNA - Not Aware of Database\nq - To go Back : ")    
@@ -151,24 +152,27 @@ def user_story_processing(user_story):
     result_display(field_finalised, finalised_table, finalised_database)
     
     print('**** After Feature Selection ****')
-    field_finalised, finalised_table, finalised_database, feature_list, logs = feature_selection_processing(field_finalised, finalised_table, finalised_database, server_connection)
-    result_display(field_finalised, finalised_table, finalised_database)
-    
+    field_finalised, finalised_table, finalised_database, feature_list, logs, feature_encoded = feature_selection_processing(field_finalised, finalised_table, finalised_database, server_connection, lda_output)
     print('**** Logs ****')
     for x in range(len(logs)):
         print(logs[x])
+    result_display(field_finalised, finalised_table, finalised_database) 
     
     if (lda_output[0] != " ") and (len(field_finalised) != 0):
         print('**** Probable Algorithms ****')
-        algorithm_used, accuracy_score, target_feature, independent_features = algorithm_selection_processing(feature_list, lda_output)
+        algorithm_used, accuracy_score, target_feature, independent_features, message = algorithm_selection_processing(feature_list, lda_output, feature_encoded)
         
-        table = PrettyTable(['Preferences' , 'Algorithm Prefered','Accuracy Percentage', 'Target Feature (Field Name__Table Name__Database Name)', 'Independent Features'])
-        index = 1
-        for i in range(len(algorithm_used)):
-            table.add_row([index, algorithm_used[index-1], accuracy_score[index-1], target_feature[index-1], independent_features[index-1]])
-            index = index + 1
+        if message == " ":
+            table = PrettyTable(['Preferences' , 'Algorithm Prefered','Accuracy Percentage', 'Target Feature (Field Name__Table Name__Database Name)', 'Independent Features'])
+            index = 1
+            for i in range(len(algorithm_used)):
+                table.add_row([index, algorithm_used[index-1], accuracy_score[index-1], target_feature[index-1], independent_features[index-1]])
+                index = index + 1
         
-        print(table)
+            print(table)
+        else:
+            print(message)
+        
     
 def result_display(finalised_field, tables, database):
     table = PrettyTable(['Preferences','Field Name', 'Tables', 'Database'])
@@ -182,7 +186,7 @@ def result_display(finalised_field, tables, database):
 if __name__ == "__main__":
     while(True):
         user_story = input('Enter a User Story or Press "q" to exit the application: ')
-        if user_story == "":
+        if user_story == " ":
             print("Kindly insert a User Story")
             continue
         elif user_story == "q":
