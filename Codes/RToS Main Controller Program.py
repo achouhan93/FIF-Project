@@ -11,6 +11,7 @@ from NLP_PreProcessing import nlp_pre_process
 from Database_Processing import database_processing
 from Comparison_Processing import comparison_values
 from feature_selection import feature_selection_processing, algorithm_selection_processing
+from topic_modelling import lda_supervised_topic_modelling
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -24,8 +25,7 @@ def user_story_processing(user_story):
     stop_words_removed = nlp_pre_process.remove_stop_words(punctuation_removed)
     hypothesis_synonyms_values = nlp_pre_process.synonyms_words(stop_words_removed)
     
-    lda_output = ("Regression", " ")
-    #lda_output = topic_modelling.lda_topic_modelling(stop_words_removed)
+    lda_output = lda_supervised_topic_modelling(stop_words_removed)
     
     # Insights from Database
     server_connection = database_processing.mysql_connection('root','Ashish@123456789','localhost')

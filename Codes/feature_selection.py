@@ -181,17 +181,17 @@ def algorithm_selection_processing(relevant_columns, lda_output, feature_encoded
                 accuracy_percent, target_columns, features_columns  = linear_regression_processing(train_features, test_features, train_labels, test_labels)
                 details = ("Regression : Linear Regression", accuracy_percent, target_columns, features_columns)
                 algorithm_details.append(details)
-            elif lda_output[1] == "SVM":
+            elif lda_output[1] == "SVMRegression":
                 accuracy_percent, target_columns, features_columns  = SVM_processing(train_features, test_features, train_labels, test_labels)
-                details = ("Prediction : SVM(Kernel - Linear)", accuracy_percent, target_columns, features_columns)
+                details = ("Regression : Support Vector Regressor", accuracy_percent, target_columns, features_columns)
                 algorithm_details.append(details)
             elif lda_output[1] == "DecisionTree":
                 accuracy_percent, target_columns, features_columns  = decision_tree_processing(train_features, test_features, train_labels, test_labels)
-                details = ("Prediction : Decision Tree", accuracy_percent, target_columns, features_columns)
+                details = ("Regression : Decision Tree Regressor", accuracy_percent, target_columns, features_columns)
                 algorithm_details.append(details)
             elif lda_output[1] == "RandomForest":
                 accuracy_percent, target_columns, features_columns  = random_forest_processing(train_features, test_features, train_labels, test_labels)
-                details = ("Prediction : Random Forest", accuracy_percent, target_columns, features_columns)
+                details = ("Regression : Random Forest Regressor", accuracy_percent, target_columns, features_columns)
                 algorithm_details.append(details)               
             elif lda_output[1] == " ":
                 accuracy_percent, target_columns, features_columns  = linear_regression_processing(train_features, test_features, train_labels, test_labels)
@@ -199,15 +199,15 @@ def algorithm_selection_processing(relevant_columns, lda_output, feature_encoded
                 algorithm_details.append(details)
                 
                 accuracy_percent, target_columns, features_columns  = SVM_processing(train_features, test_features, train_labels, test_labels)
-                details = ("Prediction : SVM(Kernel - Linear)", accuracy_percent, target_columns, features_columns)
+                details = ("Regression : Support Vector Regressor)", accuracy_percent, target_columns, features_columns)
                 algorithm_details.append(details)
                                                 
                 accuracy_percent, target_columns, features_columns  = decision_tree_processing(train_features, test_features, train_labels, test_labels)
-                details = ("Prediction : Decision Tree", accuracy_percent, target_columns, features_columns)
+                details = ("Regression : Decision Tree Regressor", accuracy_percent, target_columns, features_columns)
                 algorithm_details.append(details)
                 
                 accuracy_percent, target_columns, features_columns  = random_forest_processing(train_features, test_features, train_labels, test_labels)
-                details = ("Prediction : Random Forest", accuracy_percent, target_columns, features_columns)
+                details = ("Regression : Random Forest Regressor", accuracy_percent, target_columns, features_columns)
                 algorithm_details.append(details)
                 
         elif lda_output[0] == "Classification":
