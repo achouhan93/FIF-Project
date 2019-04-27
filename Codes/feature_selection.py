@@ -166,6 +166,17 @@ def filter_method_execution(X_features, Y_target, no_of_features):
     
 def algorithm_selection_processing(relevant_columns, lda_output, feature_encoded):
     
+    labeled_feature = [] 
+    
+    if lda_output[0] == "Classification":
+        for value in range(len(feature_encoded)):
+            labeled_feature.append(feature_encoded[value][0] + '___' + feature_encoded[value][1] + '___' + feature_encoded[value][2])
+        
+        labeled_feature = list(set(labeled_feature))
+        for j in range(len(labeled_feature)):
+            if labeled_feature[j] in relevant_columns.columns:
+                relevant_columns = relevant_columns.astype({labeled_feature[j]:'int64'}, errors='ignore')
+                
     algorithm_details = []
                
     for i in range(len(relevant_columns.columns)):
@@ -211,27 +222,14 @@ def algorithm_selection_processing(relevant_columns, lda_output, feature_encoded
                 algorithm_details.append(details)
                 
         elif lda_output[0] == "Classification":
-            labeled_feature = [] 
-            
-            for value in range(len(feature_encoded)):
-                labeled_feature.append(feature_encoded[value][0] + '___' + feature_encoded[value][1] + '___' + feature_encoded[value][2])
-    
-            labeled_feature = list(set(labeled_feature))
-            for j in range(len(labeled_feature)):
-                if labeled_feature[j] in train_features.columns:
-                    train_features = train_features.astype({labeled_feature[j]:'int64'}, errors='ignore')
-                    test_features = test_features.astype({labeled_feature[j]:'int64'}, errors='ignore')
-                elif labeled_feature[j] in train_labels.columns:
-                    train_labels = train_labels.astype({labeled_feature[j]:'int64'}, errors='ignore')
-                    test_labels = test_labels.astype({labeled_feature[j]:'int64'}, errors='ignore')                    
-            
             if lda_output[1] == " " and test_labels.dtypes != 'float64':
-                accuracy_percent, target_columns, features_columns  = test_processing(train_features, test_features, train_labels, test_labels)
-                details = ("Classification : Random Forest", accuracy_percent, target_columns, features_columns)
-                algorithm_details.append(details)
-            elif lda_output[1] == "NaiveBayes":
+                
                 accuracy_percent, target_columns, features_columns  = naive_bayes_processing(train_features, test_features, train_labels, test_labels)
-                details = ("Prediction : Naive Bayes", accuracy_percent, target_columns, features_columns)
+                details = ("Classification : Naive Bayes", accuracy_percent, target_columns, features_columns)
+                algorithm_details.append(details)
+                
+                accuracy_percent, target_columns, features_columns  = logistic_regression_processing(train_features, test_features, train_labels, test_labels)
+                details = ("Classification : Logistic Regression", accuracy_percent, target_columns, features_columns)
                 algorithm_details.append(details)
     
     algorithms = []
@@ -294,26 +292,6 @@ def SVM_processing(X_train, X_test, Y_train, Y_test):
     model_accuracy = r2_score(Y_test.values, Y_pred)
     
     return (model_accuracy, pd.DataFrame(Y_train).columns[0], filtered_features.tolist())
-        
-def naive_bayes_processing(X_train, X_test, Y_train, Y_test):
-    
-    model = BernoulliNB()
-    rfe = RFE(model, round(len(X_train.columns)/2))
-    features = rfe.fit(X_train.values(), Y_train.values())
-    value_index = []
-    for i in range(len(features.ranking_)):
-        if (features.ranking_[i] == 1):
-            value_index.append(i)
-            
-    filtered_features = X_train.columns[list(value_index)]
-    
-    testing_model = BernoulliNB()
-    testing_model.fit(X_train[filtered_features], Y_train)
-    Y_pred = testing_model.predict(X_test[filtered_features])
-    
-    model_accuracy = roc_auc_score(Y_test.values, Y_pred)
-    
-    return (model_accuracy, pd.DataFrame(Y_train).columns[0], filtered_features.tolist())                
                
 def decision_tree_processing(X_train, X_test, Y_train, Y_test):
     
@@ -355,26 +333,44 @@ def random_forest_processing(X_train, X_test, Y_train, Y_test):
     
     return (model_accuracy, pd.DataFrame(Y_train).columns[0], filtered_features.tolist()) 
 
+def naive_bayes_processing(X_train, X_test, Y_train, Y_test):
+    
+    model = MultinomialNB()
+    rfe = RFE(model, round(len(X_train.columns)/2))
+    features = rfe.fit(X_train.values, Y_train.values)
+    value_index = []
+    for i in range(len(features.ranking_)):
+        if (features.ranking_[i] == 1):
+            value_index.append(i)
+            
+    filtered_features = X_train.columns[list(value_index)]
+    
+    testing_model = MultinomialNB()
+    testing_model.fit(X_train[filtered_features], Y_train)
+    Y_pred = testing_model.predict(X_test[filtered_features])
+    
+    model_accuracy = accuracy_score(Y_test.values, Y_pred)
+    
+    return (model_accuracy, pd.DataFrame(Y_train).columns[0], filtered_features.tolist())                
 
-
-
-
-def test_processing(X_train, X_test, Y_train, Y_test):
+def logistic_regression_processing(X_train, X_test, Y_train, Y_test):
     
-    feature_selector = SequentialFeatureSelector(RandomForestClassifier(n_jobs=-1),  
-           k_features=round(len(X_train.columns)/2),
-           forward=True,
-           verbose=2,
-           scoring='roc_auc',
-           cv=4)
+    model = LogisticRegression(random_state=0, solver='lbfgs',
+                               multi_class='multinomial', n_jobs=-1)
+    rfe = RFE(model, round(len(X_train.columns)/2))
+    features = rfe.fit(X_train.values, Y_train.values)
+    value_index = []
+    for i in range(len(features.ranking_)):
+        if (features.ranking_[i] == 1):
+            value_index.append(i)
+            
+    filtered_features = X_train.columns[list(value_index)]
     
-    features = feature_selector.fit(X_train, Y_train.astype("|S6"))
-    filtered_features= X_train.columns[list(features.k_feature_idx_)]
+    testing_model = LogisticRegression(random_state=0, solver='lbfgs',
+                                       multi_class='multinomial', n_jobs=-1)
+    testing_model.fit(X_train[filtered_features], Y_train)
+    Y_pred = testing_model.predict(X_test[filtered_features])
     
-    clf = RandomForestClassifier(n_estimators=100, random_state=41, max_depth=3)  
-    clf.fit(X_train[filtered_features], Y_train.astype("|S6"))
+    model_accuracy = accuracy_score(Y_test.values, Y_pred)
     
-    Y_pred = clf.predict_proba(X_test[filtered_features])  
-    model_accuracy = roc_auc_score(Y_test.values, Y_pred[:,1]) 
-    
-    return (model_accuracy, pd.DataFrame(Y_train).columns[0], filtered_features.tolist()) 
+    return (model_accuracy, pd.DataFrame(Y_train).columns[0], filtered_features.tolist())

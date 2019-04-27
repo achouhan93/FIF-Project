@@ -40,7 +40,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.naive_bayes import BernoulliNB
+from sklearn.naive_bayes import MultinomialNB
 
 import warnings
 
@@ -52,7 +52,5 @@ from gensim import models, corpora
 from nltk.stem import WordNetLemmatizer
 
 # Testing Part
-from sklearn.ensemble import RandomForestClassifier  
-from sklearn.metrics import roc_auc_score
-from sklearn.svm import SVC
-from mlxtend.feature_selection import SequentialFeatureSelector
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
