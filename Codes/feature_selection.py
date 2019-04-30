@@ -151,13 +151,13 @@ def filter_method_execution(X_features, Y_target, no_of_features):
     
     for correlation_technique in existing_correlation_technique:
         correlation_matrix = complete_data.corr(method=correlation_technique)
+        position = correlation_matrix.columns.get_loc(Y_target.columns[0])
     
         # Extract Correlated features
         for i in range(len(correlation_matrix .columns)):  
-            for j in range(i+1):
-                if abs(correlation_matrix.iloc[i, j]) > 0.8:
-                    colname = correlation_matrix.columns[i]
-                    correlated_features.append(colname)
+            if abs(correlation_matrix.iloc[position, i]) > 0.8:
+                colname = correlation_matrix.columns[i]
+                correlated_features.append(colname)
                     
     correlated_features_finalised = comparison_values.processing_array_generated(correlated_features, len(X_features.columns))      
     correlated_features_dataframe = complete_data.loc[:, correlated_features_finalised]

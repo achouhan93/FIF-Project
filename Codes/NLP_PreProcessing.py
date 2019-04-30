@@ -32,7 +32,7 @@ class nlp_pre_process():
         return pos_tag_words
     
     def important_words_extraction(pos_tag_words):
-        regex_example = r"""NP: {<NN.*>?<NN.*>}      
+        regex_example = r"""NP: {<NN.*>?<NN.*>|<JJ.*>}      
                                         }<VB.?|IN|DT|CC|CD>+{"""
         regex_parser = nltk.RegexpParser(regex_example)
         word_regex = regex_parser.parse(pos_tag_words)

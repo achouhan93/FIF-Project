@@ -93,15 +93,15 @@ def user_story_processing(user_story):
     field_comments = pd.unique(field_comments).tolist()
         
     # Advance NLP Processing
-    pos_tagged_words = nlp_pre_process.part_of_speech_tagging(stop_words_removed)  
+    relevant_words = [WordNetLemmatizer().lemmatize(words, pos='n') for words in stop_words_removed if len(words) > 3]
+    pos_tagged_words = nlp_pre_process.part_of_speech_tagging(relevant_words)  
     important_words = nlp_pre_process.important_words_extraction(pos_tagged_words)        
     synonyms_values = nlp_pre_process.synonyms_words(important_words)
-
     if (len(updated_fields) <= important_words.size):
         number_of_values = len(updated_fields)
     else:
         number_of_values = important_words.size
-        
+    
     # Field Value Processing
     relevant_columns_based_on_comments = []
     relevant_columns_based_on_fields = []
@@ -122,7 +122,8 @@ def user_story_processing(user_story):
                 relevant_fields_based_on_comments.append(updated_fields[field_comments.index(comments)])
             
             column_predicted_list.extend(relevant_fields_based_on_comments)
-            
+    
+    number_of_values = len(list(set(column_predicted_list)))       
     column_finalised = comparison_values.processing_array_generated(column_predicted_list, number_of_values)
     
     field_finalised = []
