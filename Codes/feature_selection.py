@@ -223,6 +223,26 @@ def algorithm_selection_processing(relevant_columns, lda_output, feature_encoded
                 
         elif lda_output[0] == "Classification":
             if lda_output[1] == " " and test_labels.dtypes != 'float64':
+
+                accuracy_percent, target_columns, features_columns  = knn_processing(train_features, test_features, train_labels, test_labels)
+                details = ("Classification : Logistic Regression", accuracy_percent, target_columns, features_columns)
+                algorithm_details.append(details)
+                
+                accuracy_percent, target_columns, features_columns  = decision_tree_classification_processing(train_features, test_features, train_labels, test_labels)
+                details = ("Classification : Decision Tree Classifier", accuracy_percent, target_columns, features_columns)
+                algorithm_details.append(details)
+
+                accuracy_percent, target_columns, features_columns  = SGD_classification_processing(train_features, test_features, train_labels, test_labels)
+                details = ("Classification : Stochstic Gradient Descent Classifier", accuracy_percent, target_columns, features_columns)
+                algorithm_details.append(details)
+                
+                accuracy_percent, target_columns, features_columns  = SVM_classification_processing(train_features, test_features, train_labels, test_labels)
+                details = ("Classification : Support Vector Machine", accuracy_percent, target_columns, features_columns)
+                algorithm_details.append(details)
+
+                accuracy_percent, target_columns, features_columns  = random_forest_classification_processing(train_features, test_features, train_labels, test_labels)
+                details = ("Classification : Random Forest", accuracy_percent, target_columns, features_columns)
+                algorithm_details.append(details)                
                 
                 accuracy_percent, target_columns, features_columns  = naive_bayes_processing(train_features, test_features, train_labels, test_labels)
                 details = ("Classification : Naive Bayes", accuracy_percent, target_columns, features_columns)
@@ -231,7 +251,7 @@ def algorithm_selection_processing(relevant_columns, lda_output, feature_encoded
                 accuracy_percent, target_columns, features_columns  = logistic_regression_processing(train_features, test_features, train_labels, test_labels)
                 details = ("Classification : Logistic Regression", accuracy_percent, target_columns, features_columns)
                 algorithm_details.append(details)
-    
+               
     algorithms = []
     accuracy_score = []
     target_values = []
@@ -374,3 +394,106 @@ def logistic_regression_processing(X_train, X_test, Y_train, Y_test):
     model_accuracy = accuracy_score(Y_test.values, Y_pred)
     
     return (model_accuracy, pd.DataFrame(Y_train).columns[0], filtered_features.tolist())
+
+def SVM_classification_processing(X_train, X_test, Y_train, Y_test):
+    
+    model = LinearSVC()
+    rfe = RFE(model, round(len(X_train.columns)/2))
+    features = rfe.fit(X_train.values, Y_train.values)
+    value_index = []
+    for i in range(len(features.ranking_)):
+        if (features.ranking_[i] == 1):
+            value_index.append(i)
+            
+    filtered_features = X_train.columns[list(value_index)]
+    
+    testing_model = LinearSVC()
+    testing_model.fit(X_train[filtered_features], Y_train)
+    Y_pred = testing_model.predict(X_test[filtered_features])
+    
+    model_accuracy = accuracy_score(Y_test.values, Y_pred)
+    
+    return (model_accuracy, pd.DataFrame(Y_train).columns[0], filtered_features.tolist())
+
+def random_forest_classification_processing(X_train, X_test, Y_train, Y_test):
+    
+    model = RandomForestClassifier()
+    rfe = RFE(model, round(len(X_train.columns)/2))
+    features = rfe.fit(X_train.values, Y_train.values)
+    value_index = []
+    for i in range(len(features.ranking_)):
+        if (features.ranking_[i] == 1):
+            value_index.append(i)
+            
+    filtered_features = X_train.columns[list(value_index)]
+    
+    testing_model = RandomForestClassifier()
+    testing_model.fit(X_train[filtered_features], Y_train)
+    Y_pred = testing_model.predict(X_test[filtered_features])
+    
+    model_accuracy = accuracy_score(Y_test.values, Y_pred)
+    
+    return (model_accuracy, pd.DataFrame(Y_train).columns[0], filtered_features.tolist())
+
+def decision_tree_classification_processing(X_train, X_test, Y_train, Y_test):
+    
+    model = DecisionTreeClassifier()
+    rfe = RFE(model, round(len(X_train.columns)/2))
+    features = rfe.fit(X_train.values, Y_train.values)
+    value_index = []
+    for i in range(len(features.ranking_)):
+        if (features.ranking_[i] == 1):
+            value_index.append(i)
+            
+    filtered_features = X_train.columns[list(value_index)]
+    
+    testing_model = DecisionTreeClassifier()
+    testing_model.fit(X_train[filtered_features], Y_train)
+    Y_pred = testing_model.predict(X_test[filtered_features])
+    
+    model_accuracy = accuracy_score(Y_test.values, Y_pred)
+    
+    return (model_accuracy, pd.DataFrame(Y_train).columns[0], filtered_features.tolist())
+
+def SGD_classification_processing(X_train, X_test, Y_train, Y_test):
+    
+    model = SGDClassifier()
+    rfe = RFE(model, round(len(X_train.columns)/2))
+    features = rfe.fit(X_train.values, Y_train.values)
+    value_index = []
+    for i in range(len(features.ranking_)):
+        if (features.ranking_[i] == 1):
+            value_index.append(i)
+            
+    filtered_features = X_train.columns[list(value_index)]
+    
+    testing_model = SGDClassifier()
+    testing_model.fit(X_train[filtered_features], Y_train)
+    Y_pred = testing_model.predict(X_test[filtered_features])
+    
+    model_accuracy = accuracy_score(Y_test.values, Y_pred)
+    
+    return (model_accuracy, pd.DataFrame(Y_train).columns[0], filtered_features.tolist()) 
+
+def knn_processing(X_train, X_test, Y_train, Y_test):
+    
+    model = KNeighborsClassifier()
+    rfe = ExhaustiveFeatureSelector(model, 
+           min_features=1,
+           max_features=len(X_train.columns),
+           scoring='accuracy',
+           print_progress=True,
+           cv=5)
+    features = rfe.fit(X_train.values, Y_train.values, custom_feature_names = X_train.columns)
+    
+    filtered_features = []
+    for i in range(len(features.best_feature_names_)):
+        filtered_features.append(features.best_feature_names_[i])
+    
+    testing_model = KNeighborsClassifier()
+    testing_model.fit(X_train[filtered_features], Y_train)
+    Y_pred = testing_model.predict(X_test[filtered_features])
+    
+    model_accuracy = accuracy_score(Y_test.values, Y_pred)
+    
+    return (model_accuracy, pd.DataFrame(Y_train).columns[0], filtered_features) 

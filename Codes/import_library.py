@@ -36,21 +36,20 @@ from prettytable import PrettyTable
 from sklearn.feature_selection import VarianceThreshold, RFE
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
-from sklearn.linear_model import LinearRegression
-from sklearn.svm import SVR
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression, LogisticRegression, SGDClassifier
+from sklearn.svm import SVR, LinearSVC
+from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.neighbors import KNeighborsClassifier
 
 import warnings
 
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score, accuracy_score
 
 #LDA Implementation
 from gensim import models, corpora
 from nltk.stem import WordNetLemmatizer
 
-# Testing Part
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
+from mlxtend.feature_selection import ExhaustiveFeatureSelector
