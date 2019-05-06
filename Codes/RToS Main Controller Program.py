@@ -93,10 +93,11 @@ def user_story_processing(user_story):
     field_comments = pd.unique(field_comments).tolist()
         
     # Advance NLP Processing
-    relevant_words = [WordNetLemmatizer().lemmatize(words, pos='n') for words in stop_words_removed if len(words) > 3]
+    relevant_words = [words for words in stop_words_removed if len(words) > 3]
     pos_tagged_words = nlp_pre_process.part_of_speech_tagging(relevant_words)  
     important_words = nlp_pre_process.important_words_extraction(pos_tagged_words)        
     synonyms_values = nlp_pre_process.synonyms_words(important_words)
+
     if (len(updated_fields) <= important_words.size):
         number_of_values = len(updated_fields)
     else:
@@ -169,12 +170,11 @@ def user_story_processing(user_story):
             for i in range(len(algorithm_used)):
                 table.add_row([index, algorithm_used[index-1], accuracy_score[index-1], target_feature[index-1], independent_features[index-1]])
                 index = index + 1
-        
+                
             print(table)
         else:
             print(message)
-        
-    
+            
 def result_display(finalised_field, tables, database):
     table = PrettyTable(['Preferences','Field Name', 'Tables', 'Database'])
     index = 1

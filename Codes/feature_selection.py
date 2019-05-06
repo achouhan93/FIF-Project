@@ -54,19 +54,15 @@ def feature_selection_processing(database_fields, database_tables, database_list
                 
                 (df_X, logger) = filter_method_data_preprocessing(df_X, logger)
                 
-                if lda_output[0] != "Classification":
-                    # Scaling the Features on same scale
-                    sc_x = StandardScaler()
-                    df_X_scaled = sc_x.fit_transform(df_X)
-                    df_X_scaled = pd.DataFrame(df_X_scaled, index = df_X.index, columns = df_X.columns)
-                    sc_y = StandardScaler()
-                    df_Y_scaled = sc_y.fit_transform(df_Y)
-                    df_Y_scaled = pd.DataFrame(df_Y_scaled, index = df_Y.index, columns = df_Y.columns)
-                    number_of_features_relevant = round(len(df_X_scaled.columns)/2)
-                    features, features_data = filter_method_execution(df_X_scaled, df_Y_scaled, number_of_features_relevant)
-                else:
-                    number_of_features_relevant = round(len(df_X.columns)/2)
-                    features, features_data = filter_method_execution(df_X, df_Y, number_of_features_relevant)
+                # Scaling the Features on same scale
+                sc_x = StandardScaler()
+                df_X_scaled = sc_x.fit_transform(df_X)
+                df_X_scaled = pd.DataFrame(df_X_scaled, index = df_X.index, columns = df_X.columns)
+                sc_y = StandardScaler()
+                df_Y_scaled = sc_y.fit_transform(df_Y)
+                df_Y_scaled = pd.DataFrame(df_Y_scaled, index = df_Y.index, columns = df_Y.columns)
+                number_of_features_relevant = round(len(df_X_scaled.columns)/2)
+                features, features_data = filter_method_execution(df_X_scaled, df_Y_scaled, number_of_features_relevant)
                 
                 for value in range(len(features_data.columns)):
                     features_data.columns.values[value] = features[value] + '___' + table + '___' + database
@@ -82,7 +78,7 @@ def feature_selection_processing(database_fields, database_tables, database_list
     logger = list(sorted(set(logger)))
     
     if relevant_columns_data.empty:
-        return (final_fields, final_table, final_database, relevant_columns_data, logger, labelencoder)
+        return (final_fields, final_table, final_database, relevant_columns_data, logger, feature_encoded)
             
     relevant_columns_data.fillna(0, inplace=True)
     relevant_columns_data_T = relevant_columns_data.T
