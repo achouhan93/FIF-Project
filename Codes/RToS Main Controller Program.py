@@ -154,7 +154,7 @@ def user_story_processing(user_story):
     result_display(field_finalised, finalised_table, finalised_database)
     
     print('**** After Feature Selection ****')
-    field_finalised, finalised_table, finalised_database, feature_list, logs, feature_encoded = feature_selection_processing(field_finalised, finalised_table, finalised_database, server_connection, lda_output)
+    field_finalised, finalised_table, finalised_database, feature_list, logs, feature_encoded = feature_selection_processing(field_finalised, finalised_table, finalised_database, server_connection)
     print('**** Logs ****')
     for x in range(len(logs)):
         print(logs[x])

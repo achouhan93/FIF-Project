@@ -5,10 +5,12 @@ Created on Thu Mar  7 00:25:52 2019
 @author: Ashish
 """
 from import_library import *
+from Label_Encoding_Service import label_encoding
 from Database_Processing import database_processing
 from Comparison_Processing import comparison_values
+from Feature_Scaling_Service import scaling
 
-def feature_selection_processing(database_fields, database_tables, database_list, database_connection, lda_output):
+def feature_selection_processing(database_fields, database_tables, database_list, database_connection):
     
     feature_encoded = []
     logger = []
@@ -35,11 +37,15 @@ def feature_selection_processing(database_fields, database_tables, database_list
                 # Encoding Categorical Data
                 for column_name in table_data.columns:
                     if table_data[column_name].dtype == object:
-                        labelencoder = LabelEncoder()
-                        table_data[column_name] = labelencoder.fit_transform(table_data[column_name].astype(str))
-                        table_data[column_name].fillna(0, inplace=True)
-                        feature_value = (column_name, table, database)
-                        feature_encoded.append(feature_value)
+                        table_data[column_name] = label_encoding(table_data[column_name])
+# =============================================================================
+#                         labelencoder = LabelEncoder()
+#                         table_data[column_name] = labelencoder.fit_transform(table_data[column_name].astype(str))
+#                         table_data[column_name].fillna(0, inplace=True)
+#                         feature_value = (column_name, table, database)
+#                         feature_encoded.append(feature_value)
+# =============================================================================
+                        feature_encoded.append((column_name, table, database))
                     else:
                         pass
                 
@@ -55,12 +61,18 @@ def feature_selection_processing(database_fields, database_tables, database_list
                 (df_X, logger) = filter_method_data_preprocessing(df_X, logger)
                 
                 # Scaling the Features on same scale
-                sc_x = StandardScaler()
-                df_X_scaled = sc_x.fit_transform(df_X)
-                df_X_scaled = pd.DataFrame(df_X_scaled, index = df_X.index, columns = df_X.columns)
-                sc_y = StandardScaler()
-                df_Y_scaled = sc_y.fit_transform(df_Y)
-                df_Y_scaled = pd.DataFrame(df_Y_scaled, index = df_Y.index, columns = df_Y.columns)
+                df_X_scaled = scaling(df_X)
+# =============================================================================
+#                 sc_x = StandardScaler()
+#                 df_X_scaled = sc_x.fit_transform(df_X)
+#                 df_X_scaled = pd.DataFrame(df_X_scaled, index = df_X.index, columns = df_X.columns)
+# =============================================================================
+                df_Y_scaled = scaling(df_Y)
+# =============================================================================
+#                 sc_y = StandardScaler()
+#                 df_Y_scaled = sc_y.fit_transform(df_Y)
+#                 df_Y_scaled = pd.DataFrame(df_Y_scaled, index = df_Y.index, columns = df_Y.columns)
+# =============================================================================
                 number_of_features_relevant = round(len(df_X_scaled.columns)/2)
                 features, features_data = filter_method_execution(df_X_scaled, df_Y_scaled, number_of_features_relevant)
                 
