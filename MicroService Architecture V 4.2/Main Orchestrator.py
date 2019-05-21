@@ -7,11 +7,32 @@ Created on Thu Feb 14 18:24:02 2019
 If Date Column is present in the database then for User Story, date column cannot be retreived as features
 """
 from import_library import *
-from NLP_PreProcessing import nlp_pre_process
+
+# Database Information Retreival Service
 from Database_Processing import database_processing
-from Comparison_Processing import comparison_values
-from feature_selection import feature_selection_processing, algorithm_selection_processing
+
+# Topic Modelling Service
 from topic_modelling import lda_supervised_topic_modelling
+
+# Natural Language Processing Services
+from Tokenizer import tokenize
+from Stop_Words_Removal import remove_stop_words
+from Synonymization import synonyms_words
+from Part_of_Speech_Tagging import part_of_speech_tagging
+
+# Word Embeddings Service
+from Word_Embedding import word_embedding_tfidf
+from Euclidean_Distance import euclidean_distance
+from Manhattan_Distance import manhattan_distance
+from Cosine_Similarity import cosine_similarity
+
+# Feature Selection Orchestrator
+from Feature_Identifier_Orchestrator import feature_selection_processing
+
+# Data Mining Task Evalutaor Orchestrator
+from Data_Mining_Task_Evaluator_Orchestrator import algorithm_selection_processing
+
+from Counter_Processing import processing_array_generated
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -20,10 +41,9 @@ def user_story_processing(user_story):
     existing_comparison_technique = ['cosine', 'euclidean' , 'manhattan']
 
     # NLP Pre-Processing 
-    tokenize_words = nlp_pre_process.tokenize(user_story)
-    punctuation_removed = nlp_pre_process.remove_punctuation(tokenize_words)
-    stop_words_removed = nlp_pre_process.remove_stop_words(punctuation_removed)
-    hypothesis_synonyms_values = nlp_pre_process.synonyms_words(stop_words_removed)
+    tokenize_words = tokenize(user_story)
+    stop_words_removed = remove_stop_words(tokenize_words)
+    hypothesis_synonyms_values = synonyms_words(stop_words_removed)
     
     lda_output = lda_supervised_topic_modelling(stop_words_removed)
     
@@ -33,13 +53,22 @@ def user_story_processing(user_story):
     number_of_values = 1
     
     database_finalisation_list = []
-
+    
+    vectorized_words = word_embedding_tfidf(databases_present, hypothesis_synonyms_values)
+    
     for comparison_technique in existing_comparison_technique:
         # Finding the Database to be referred
-        extracted_database_finalised = comparison_values.similar_values(databases_present, hypothesis_synonyms_values, number_of_values, comparison_technique)
-        database_finalisation_list.append(extracted_database_finalised)
+        if comparison_technique == "euclidean":
+            extracted_database_finalised = euclidean_distance(databases_present, vectorized_words, number_of_values)
+            database_finalisation_list.append(extracted_database_finalised)
+        elif comparison_technique == "cosine":
+            extracted_database_finalised = cosine_similarity(databases_present,vectorized_words, number_of_values)
+            database_finalisation_list.append(extracted_database_finalised)
+        elif comparison_technique == "manhattan":
+            extracted_database_finalised = manhattan_distance(databases_present,vectorized_words, number_of_values)
+            database_finalisation_list.append(extracted_database_finalised)
     
-    database_finalised_value = comparison_values.processing_array_generated(database_finalisation_list, number_of_values)  
+    database_finalised_value = processing_array_generated(database_finalisation_list, number_of_values)  
     database_finalised = database_finalised_value[0]
     
     while(True):
@@ -94,14 +123,13 @@ def user_story_processing(user_story):
         
     # Advance NLP Processing
     relevant_words = [words for words in stop_words_removed if len(words) > 3]
-    pos_tagged_words = nlp_pre_process.part_of_speech_tagging(relevant_words)  
-    important_words = nlp_pre_process.important_words_extraction(pos_tagged_words)        
-    synonyms_values = nlp_pre_process.synonyms_words(important_words)
+    pos_tagged_words = part_of_speech_tagging(relevant_words)       
+    synonyms_values = synonyms_words(pos_tagged_words)
 
-    if (len(updated_fields) <= important_words.size):
+    if (len(updated_fields) <= pos_tagged_words.size):
         number_of_values = len(updated_fields)
     else:
-        number_of_values = important_words.size
+        number_of_values = pos_tagged_words.size
     
     # Field Value Processing
     relevant_columns_based_on_comments = []
@@ -110,13 +138,31 @@ def user_story_processing(user_story):
     column_predicted_list = []
     
     if len(updated_fields):
-        for comparison_technique_present in existing_comparison_technique:
-            relevant_columns_based_on_fields = comparison_values.similar_values(updated_fields, synonyms_values, number_of_values, comparison_technique_present)
+        vectorized_field_words = word_embedding_tfidf(updated_fields, synonyms_values)
+        
+        for comparison_technique in existing_comparison_technique:
+            # Finding the Database to be referred
+            if comparison_technique == "euclidean":
+                relevant_columns_based_on_fields = euclidean_distance(updated_fields, vectorized_field_words, number_of_values)
+            elif comparison_technique == "cosine":
+                relevant_columns_based_on_fields = cosine_similarity(updated_fields, vectorized_field_words, number_of_values)
+            elif comparison_technique == "manhattan":
+                relevant_columns_based_on_fields = manhattan_distance(updated_fields, vectorized_field_words, number_of_values)
+            
             column_predicted_list.extend(relevant_columns_based_on_fields)
    
     if (len(field_comments) and len(updated_fields) == len(field_comments)):
+        vectorized_comment_words = word_embedding_tfidf(field_comments, synonyms_values)
+        
         for comparison_technique in existing_comparison_technique:
-            relevant_columns_based_on_comments = comparison_values.similar_values(field_comments, synonyms_values, number_of_values, comparison_technique)
+            # Finding the Database to be referred
+            if comparison_technique == "euclidean":
+                relevant_columns_based_on_comments = euclidean_distance(field_comments, vectorized_comment_words, number_of_values)
+            elif comparison_technique == "cosine":
+                relevant_columns_based_on_comments = cosine_similarity(field_comments, vectorized_comment_words, number_of_values)
+            elif comparison_technique == "manhattan":
+                relevant_columns_based_on_comments = manhattan_distance(field_comments, vectorized_comment_words, number_of_values)
+
             relevant_fields_based_on_comments = []
             
             for comments in relevant_columns_based_on_comments:

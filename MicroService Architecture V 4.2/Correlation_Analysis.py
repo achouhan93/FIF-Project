@@ -2,8 +2,13 @@
 """
 Created on Mon May  6 18:21:46 2019
 
-@author: ashis
+@author: Ashish Chouhan
+Description:
+    Feature selection filter method with correlation
 """
+from import_library import *
+from Counter_Processing import processing_array_generated
+
 def feature_correlation(X_features, Y_target, no_of_features):
     
     # ---------------------------------------------------------------------------------- #        
@@ -25,4 +30,7 @@ def feature_correlation(X_features, Y_target, no_of_features):
                 colname = correlation_matrix.columns[i]
                 correlated_features.append(colname)
     
-    return correlated_features
+    correlated_features_finalised = processing_array_generated(correlated_features, len(X_features.columns))      
+    correlated_features_dataframe = complete_data.loc[:, correlated_features_finalised]
+    correlated_features_dataframe = pd.DataFrame(correlated_features_dataframe)
+    return (correlated_features_finalised, correlated_features_dataframe)
