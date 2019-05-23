@@ -3,8 +3,7 @@
 Created on Tue Feb 19 22:16:38 2019
 @author: Ashish Chouhan
 Description:
-    RToS Implementation without LDA but all Algorithm Covered
-    (Micro Service Architecture)
+    Database Information Retreival Microservice
 """
 from import_library import *
 
