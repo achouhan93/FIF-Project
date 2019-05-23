@@ -21,6 +21,8 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords
 # Word Net
 from nltk.corpus import wordnet
+#Spelling Corrector
+from textblob import Word
 
 # Evaluation Library Import
 from sklearn.feature_extraction.text import TfidfVectorizer

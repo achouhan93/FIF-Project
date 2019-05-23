@@ -16,6 +16,7 @@ from topic_modelling import lda_supervised_topic_modelling
 
 # Natural Language Processing Services
 from Tokenizer import tokenize
+from Spelling_Corrector import spell_checker
 from Stop_Words_Removal import remove_stop_words
 from Synonymization import synonyms_words
 from Part_of_Speech_Tagging import part_of_speech_tagging
@@ -42,7 +43,8 @@ def user_story_processing(user_story):
 
     # NLP Pre-Processing 
     tokenize_words = tokenize(user_story)
-    stop_words_removed = remove_stop_words(tokenize_words)
+    corrected_words = spell_checker(tokenize_words)
+    stop_words_removed = remove_stop_words(corrected_words)
     hypothesis_synonyms_values = synonyms_words(stop_words_removed)
     
     lda_output = lda_supervised_topic_modelling(stop_words_removed)
