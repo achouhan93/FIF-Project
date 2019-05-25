@@ -5,13 +5,16 @@ Created on Sat Apr 27 15:57:10 2019
 @author: ashis
 """
 from import_library import *
-from NLP_PreProcessing import nlp_pre_process
+from Tokenizer import tokenize
+from Spelling_Corrector import spell_checker
+from Stop_Words_Removal import remove_stop_words
+from Synonymization import synonyms_words
+from Part_of_Speech_Tagging import part_of_speech_tagging
 
 def clean_text(text):
     # NLP Pre-Processing 
-    tokenize_words = nlp_pre_process.tokenize(text.lower())
-    punctuation_removed = nlp_pre_process.remove_punctuation(tokenize_words)
-    stop_words_removed = nlp_pre_process.remove_stop_words(punctuation_removed)
+    tokenize_words = tokenize(text.lower())
+    stop_words_removed = remove_stop_words(tokenize_words)
     relevant_words = [WordNetLemmatizer().lemmatize(words, pos='v') for words in stop_words_removed if len(words) > 3]
     return relevant_words
 

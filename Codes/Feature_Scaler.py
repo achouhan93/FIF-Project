@@ -9,7 +9,7 @@ from import_library import *
 
 def scaling(column_data):
     sc = StandardScaler()
-    df_scaled = sc_x.fit_transform(column_data)
+    df_scaled = sc.fit_transform(column_data)
     df_scaled = pd.DataFrame(df_scaled, index = column_data.index, columns = column_data.columns)
     return df_scaled
 

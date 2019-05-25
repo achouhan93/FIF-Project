@@ -9,10 +9,10 @@ If Date Column is present in the database then for User Story, date column canno
 from import_library import *
 
 # Database Information Retreival Service
-from Database_Processing import database_processing
+from Database_Information_Retreival import database_processing
 
 # Topic Modelling Service
-from topic_modelling import lda_supervised_topic_modelling
+from Topic_Modeller import lda_supervised_topic_modelling
 
 # Natural Language Processing Services
 from Tokenizer import tokenize
@@ -124,8 +124,8 @@ def user_story_processing(user_story):
     field_comments = pd.unique(field_comments).tolist()
         
     # Advance NLP Processing
-    relevant_words = [words for words in stop_words_removed if len(words) > 3]
-    pos_tagged_words = part_of_speech_tagging(relevant_words)       
+    #relevant_words = [words for words in stop_words_removed if len(words) > 3]
+    pos_tagged_words = part_of_speech_tagging(stop_words_removed)       
     synonyms_values = synonyms_words(pos_tagged_words)
 
     if (len(updated_fields) <= pos_tagged_words.size):
@@ -173,7 +173,7 @@ def user_story_processing(user_story):
             column_predicted_list.extend(relevant_fields_based_on_comments)
     
     number_of_values = len(list(set(column_predicted_list)))       
-    column_finalised = comparison_values.processing_array_generated(column_predicted_list, number_of_values)
+    column_finalised = processing_array_generated(column_predicted_list, number_of_values)
     
     field_finalised = []
     

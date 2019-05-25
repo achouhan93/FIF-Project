@@ -5,12 +5,11 @@ Created on Thu Mar  7 00:25:52 2019
 @author: Ashish
 """
 from import_library import *
-from Database_Processing import database_processing
-from Comparison_Processing import comparison_values
+from Database_Information_Retreival import database_processing
 from Feature_Scaler import scaling
 from Duplicate_Feature_Removal import duplicate_removal
 from Encoding import label_encoding
-from Variance_Threshold import variance_features
+from Variance_Threshold import variance_feature
 from Correlation_Analysis import feature_correlation
 
 def feature_selection_processing(database_fields, database_tables, database_list, database_connection):
@@ -41,6 +40,7 @@ def feature_selection_processing(database_fields, database_tables, database_list
                 for column_name in table_data.columns:
                     if table_data[column_name].dtype == object:
                         table_data[column_name] = label_encoding(table_data[column_name])
+                        table_data[column_name].fillna(0, inplace=True)
                         feature_encoded.append((column_name, table, database))
                     else:
                         pass
@@ -55,7 +55,7 @@ def feature_selection_processing(database_fields, database_tables, database_list
                     continue
                 
                 initial_features = df_X
-                (df_X, logger) = variance_features(df_X, logger)
+                (df_X, logger) = variance_feature(df_X, logger)
                 df_X = duplicate_removal(df_X)
                 
                 duplicated_columns = [dup_col for dup_col in initial_features.columns if dup_col not in df_X.columns]

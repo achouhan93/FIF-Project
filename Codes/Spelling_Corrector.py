@@ -16,6 +16,6 @@ def spell_checker(tokenized_words):
         w = Word(word)
         correct_word = w.spellcheck()
         
-        spell_checked_words.append(correct_word[0])
+        spell_checked_words.append(correct_word[0][0])
         
     return spell_checked_words

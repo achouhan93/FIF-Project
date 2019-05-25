@@ -11,7 +11,6 @@ from import_library import *
 def label_encoding(column_data):
     labelencoder = LabelEncoder()
     column_data = labelencoder.fit_transform(column_data.astype(str))
-    column_data.fillna(0, inplace=True)
     return column_data
     
     
