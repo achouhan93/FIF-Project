@@ -50,7 +50,7 @@ def user_story_processing(user_story):
     lda_output = lda_supervised_topic_modelling(stop_words_removed)
     
     # Insights from Database
-    server_connection = database_processing.mysql_connection('root','Ashish@123456789','localhost')
+    server_connection = database_processing.mysql_connection('root','root','localhost')
     databases_present = database_processing.database_information(server_connection)
     number_of_values = 1
     
